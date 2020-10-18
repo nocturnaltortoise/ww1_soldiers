@@ -1,67 +1,90 @@
-{% load bootstrap4 %}
-{% bootstrap_css %}
 
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-<script type='text/javascript'>
-  var soldiers = {{ soldiers|safe }};
-</script>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>WW1 Soldiers From Burnley</title>
+  </head>
+  <body>
+    {% load bootstrap4 %}
+    {% bootstrap_css %}
 
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type='text/javascript'>
+      var soldiers = {{ soldiers|safe }};
+      var current_page = 0;
+      var query = '';
+      var pages = {{ pages|safe }};
+    </script>
 
-
-<div id="app">
-  <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
-    <a class="navbar-brand" href="/">Burnley Soldiers in the First World War</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/about">About</a>
-        </li>
-      </ul>
-    </div>
-    <div class="form-row my-2 my-lg-0">
-      <div class="col">
-        <input v-on:keyup.enter="getSearchResults(query)" v-model="query" id="search" class="form-control mr-sm-2" type="text">
-      </div>
-      <div class="col">
-        <button v-on:click="getSearchResults(query)" id="search-btn" class="btn btn-primary my-2 my-sm-0" >Search</button>
-      </div>
-    </div>
-  </nav>
-
-  <div class="container">
-    <div class="row">
-      <div class="col-sm">
-        <div v-for="soldier in soldiers" class="card mt-2">
-          <div class="card-body">
-            <h5 class="card-title">[[ soldier.rank ]] [[ soldier.other_names ]] [[ soldier.surname ]]</h5>
-            <p class="card-text">
-              Number: [[ soldier.soldier_number ]]<br>
-              Regiment: [[ soldier.regiment ]]<br>
-              Address: [[ soldier.address ]]
-            </p>
+    <div id="app">
+      <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+        <a class="navbar-brand" href="/">Burnley Soldiers in the First World War</a>
+        <div class="collapse navbar-collapse">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about">About</a>
+            </li>
+          </ul>
+        </div>
+        <div class="form-row my-2 my-lg-0">
+          <div class="col">
+            <input v-on:keyup.enter="getSearchResults(query, 0)" v-model="query" id="search" class="form-control mr-sm-2" type="text">
           </div>
+          <div class="col">
+            <button v-on:click="getSearchResults(query, 0)" id="search-btn" class="btn btn-primary my-2 my-sm-0" >Search</button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="container">
+        <div class="row">
+          <div class="col-sm">
+            <p class="mt-3">Page [[ current_page + 1 ]]</p>
+            <div v-for="soldier in soldiers" class="card mt-2">
+              <div class="card-body">
+                <h5 class="card-title">[[ soldier.rank ]] [[ soldier.other_names ]] [[ soldier.surname ]]</h5>
+                <p class="card-text">
+                  Number: [[ soldier.soldier_number ]]<br>
+                  Regiment: [[ soldier.regiment ]]<br>
+                  Address: [[ soldier.address ]]
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <button v-for="page in pages" type="button" name="button" class="btn btn-link" v-on:click="getSearchResults(query, page)">[[ page + 1 ]]</button>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
-  var app = new Vue({
-    delimiters: ['[[', ']]'],
-    el: '#app',
-    data: {
-        soldiers: soldiers
-    },
-    methods: {
-      getSearchResults(query) {
-        fetch('/search?q=' + query)
-        .then(response => response.json())
-        .then(jsonSoldiers => this.soldiers = jsonSoldiers)
-      }
-    },
-  });
-</script>
+    <script>
+      var app = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data: {
+            soldiers: soldiers,
+            query: query,
+            current_page: current_page,
+            pages: pages
+        },
+        methods: {
+          getSearchResults(query, page) {
+            this.query = query;
+            this.current_page = page;
+            fetch('/search?q=' + query + '&p=' + page)
+            .then(response => response.json())
+            .then(jsonSoldiers => {
+                this.soldiers = jsonSoldiers.soldiers;
+                this.pages = jsonSoldiers.pages;
+            });
+          }
+        },
+      });
+    </script>
+  </body>
+</html>
