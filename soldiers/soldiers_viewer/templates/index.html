@@ -1,0 +1,67 @@
+{% load bootstrap4 %}
+{% bootstrap_css %}
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type='text/javascript'>
+  var soldiers = {{ soldiers|safe }};
+</script>
+
+
+
+<div id="app">
+  <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+    <a class="navbar-brand" href="/">Burnley Soldiers in the First World War</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+      </ul>
+    </div>
+    <div class="form-row my-2 my-lg-0">
+      <div class="col">
+        <input v-model="query" id="search" class="form-control mr-sm-2" type="text">
+      </div>
+      <div class="col">
+        <button v-on:click="getSearchResults(query)" id="search-btn" class="btn btn-primary my-2 my-sm-0" >Search</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm">
+        <div v-for="soldier in soldiers" class="card mt-2">
+          <div class="card-body">
+            <h5 class="card-title">[[ soldier.rank ]] [[ soldier.other_names ]] [[ soldier.surname ]]</h5>
+            <p class="card-text">
+              Number: [[ soldier.soldier_number ]]<br>
+              Regiment: [[ soldier.regiment ]]<br>
+              Address: [[ soldier.address ]]
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var app = new Vue({
+    delimiters: ['[[', ']]'],
+    el: '#app',
+    data: {
+        soldiers: soldiers
+    },
+    methods: {
+      getSearchResults(query) {
+        fetch('/search?q=' + query)
+        .then(response => response.json())
+        .then(jsonSoldiers => this.soldiers = jsonSoldiers)
+      }
+    },
+  });
+</script>
