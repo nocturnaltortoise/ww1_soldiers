@@ -10,7 +10,7 @@ from django.http import JsonResponse
 # Create your views here.
 
 def index(request):
-    soldiers = Soldier.objects.order_by('surname', 'other_names').all()
+    soldiers = Soldier.objects.order_by('surname', 'other_names').all()[:100]
     json_soldiers = []
     for soldier in soldiers:
         json_soldiers.append({

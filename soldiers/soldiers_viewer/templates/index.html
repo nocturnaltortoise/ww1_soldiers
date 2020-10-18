@@ -23,7 +23,7 @@
     </div>
     <div class="form-row my-2 my-lg-0">
       <div class="col">
-        <input v-model="query" id="search" class="form-control mr-sm-2" type="text">
+        <input v-on:keyup.enter="getSearchResults(query)" v-model="query" id="search" class="form-control mr-sm-2" type="text">
       </div>
       <div class="col">
         <button v-on:click="getSearchResults(query)" id="search-btn" class="btn btn-primary my-2 my-sm-0" >Search</button>
