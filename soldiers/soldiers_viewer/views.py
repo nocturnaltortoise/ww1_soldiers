@@ -49,7 +49,7 @@ def search(request):
 
     json_soldiers = {
         'soldiers': [],
-        'pages': list(range(max(page-2, 0), min(page_count, page + 9))) if page != 0 else list(range(max(page-2, 0), min(page_count, page + 10)))
+        'pages': list(range(max(page-5, 0), min(page_count, page + 9))) if page != 0 else list(range(max(page-5, 0), min(page_count, page + 5)))
     }
     for soldier in soldiers:
         json_soldiers['soldiers'].append({
