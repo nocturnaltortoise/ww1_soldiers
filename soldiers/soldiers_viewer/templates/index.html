@@ -61,7 +61,7 @@
           <div class="col-sm">
             <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
               <div class="btn-group mr-2" role="group" aria-label="First group">
-                <button type="button" name="button" class="btn btn-secondary" v-on:click="getSearchResults(query, 1)">First</button>
+                <button type="button" name="button" class="btn btn-secondary" v-on:click="getSearchResults(query, 0)">First</button>
               </div>
               <div class="btn-group mr-2" role="group" aria-label="First group">
                 <button v-for="page in pages" v-bind:class="{ 'btn-primary': page == current_page, 'btn-secondary': page != current_page }" type="button" name="button" class="btn" v-on:click="getSearchResults(query, page)">[[ page + 1 ]]</button>
