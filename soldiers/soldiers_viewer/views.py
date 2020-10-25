@@ -67,9 +67,10 @@ def search(request):
 def get_page_numbers(page):
     page = page + 1
     if page % 10 == 0:
-        return list(range(page-1, page+9))
+        return list(range(page-1, page+10))
 
-    return list(range(int(math.floor(page / 10.0)) * 10, int(math.ceil(page / 10.0)) * 10))
+    start_of_ten_pages = max((int(math.floor(page / 10.0)) * 10)-1, 0)
+    return list(range(start_of_ten_pages, int(math.ceil(page / 10.0)) * 10))
 
 def about(request):
     return render(request, 'about.html')
