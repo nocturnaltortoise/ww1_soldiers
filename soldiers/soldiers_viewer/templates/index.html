@@ -12,6 +12,10 @@
     {% bootstrap_css %}
 
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/es6-promise@4.2.4/dist/es6-promise.auto.min.js"></script>
+    <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
     <script type='text/javascript'>
       var soldiers = {{ soldiers|safe }};
       var current_page = 0;
@@ -32,11 +36,11 @@
             </li>
           </ul>
         </div>
-        <div class="form-row my-2 my-lg-0">
+        <div class="form-row w-50 d-flex ml-auto">
           <div class="col">
             <input v-on:keyup.enter="getSearchResults(query, 0)" v-model="query" id="search" class="form-control mr-sm-2 my-2 my-sm-0" type="text">
           </div>
-          <div class="col">
+          <div class="col flex-grow-0">
             <button v-on:click="getSearchResults(query, 0)" id="search-btn" class="btn btn-primary my-2 my-sm-0" >Search</button>
           </div>
         </div>
@@ -45,25 +49,16 @@
       <div class="container">
         <div class="row">
           <div class="col-sm">
-            <div v-for="soldier in soldiers" class="card mt-2">
-              <div class="card-body">
-                <h5 class="card-title">[[ soldier.rank ]] [[ soldier.other_names ]] [[ soldier.surname ]]</h5>
-                <p class="card-text">
-                  Number: [[ soldier.soldier_number ]]<br>
-                  Regiment: [[ soldier.regiment ]]<br>
-                  Address: [[ soldier.address ]]
-                </p>
-              </div>
-            </div>
+            <soldier v-for="soldier in soldiers" v-bind:soldier="soldier" v-bind:key="soldier.id" class="card mt-2"></soldier>
           </div>
         </div>
         <div class="row mt-2 mb-2">
           <div class="col-sm">
-            <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-              <div class="btn-group mr-2" role="group" aria-label="First group">
+            <div class="btn-toolbar" role="toolbar" aria-label="Page selector">
+              <div class="btn-group mr-2" role="group" aria-label="Go back to first page.">
                 <button type="button" name="button" class="btn btn-secondary" v-on:click="getSearchResults(query, 0)">First</button>
               </div>
-              <div class="btn-group mr-2" role="group" aria-label="First group">
+              <div class="btn-group mr-2" role="group" aria-label="Select page">
                 <button v-for="page in pages" v-bind:class="{ 'btn-primary': page == current_page, 'btn-secondary': page != current_page }" type="button" name="button" class="btn" v-on:click="getSearchResults(query, page)">[[ page + 1 ]]</button>
               </div>
             </div>
@@ -74,6 +69,56 @@
     </div>
 
     <script>
+      Vue.component('soldier', {
+        props: ['soldier'],
+        delimiters: ['[[', ']]'],
+        template: `
+          <div class="card-body">
+            <h5 class="card-title">[[ soldier.rank ]] [[ soldier.other_names ]] [[ soldier.surname ]]</h5>
+            <p class="card-text">
+              Number: [[ soldier.soldier_number ]]<br>
+              Regiment: [[ soldier.regiment ]]<br>
+              Address: [[ soldier.address ]]
+            </p>
+            <div :id="soldier.id" style="width: 300px; height: 300px;"></div>
+          </div>
+        `,
+        created() {
+          this.$nextTick(function(){
+            let self = this;
+            mapboxgl.accessToken = 'pk.eyJ1IjoibW9ycGhhc2hhcmsiLCJhIjoiY2tlc2EwYm9vMzlxMzJ5bnBsZ3pkM2w2MyJ9.LIcorYecg_4K1Rtd-elGzA';
+            var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
+            mapboxClient.geocoding
+            .forwardGeocode({
+              query: self.soldier.address + ", Burnley",
+              autocomplete: true,
+              limit: 1,
+              bbox: [-2.45672,53.68413,-2.05571,53.91367]
+            })
+            .send()
+            .then(function (response) {
+              if (
+                response &&
+                response.body &&
+                response.body.features &&
+                response.body.features.length
+              ) {
+                var feature = response.body.features[0];
+
+                var map = new mapboxgl.Map({
+                  container: self.soldier.id.toString(),
+                  style: 'mapbox://styles/mapbox/streets-v11',
+                  center: feature.center,
+                  zoom: 15
+                });
+                new mapboxgl.Marker().setLngLat(feature.center).addTo(map);
+              }
+            });
+          });
+
+        }
+      });
+
       var app = new Vue({
         delimiters: ['[[', ']]'],
         el: '#app',
