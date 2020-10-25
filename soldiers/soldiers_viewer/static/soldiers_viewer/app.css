@@ -4,6 +4,9 @@
 
 #search-bar {
   width: 50%;
+}
+
+#search {
   min-width: 200px;
 }
 
