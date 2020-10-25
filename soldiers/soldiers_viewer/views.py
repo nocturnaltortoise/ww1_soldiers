@@ -22,12 +22,13 @@ def index(request):
         json_soldiers.append({
             'surname': soldier.surname,
             'other_names': soldier.other_names,
-            'rank': soldier.rank,
-            'regiment': soldier.regiment,
+            'rank': soldier.friendly_rank,
+            'regiment': soldier.friendly_regiment,
             'soldier_number': soldier.soldier_number,
-            'address': soldier.address
+            'address': soldier.address,
+            'id': soldier.id
         })
-    print(range(pages))
+
     return render(request, 'index.html', {'soldiers': json.dumps(json_soldiers), 'pages': list(range(10))})
 
 def search(request):
@@ -56,10 +57,11 @@ def search(request):
         json_soldiers['soldiers'].append({
             'surname': soldier.surname,
             'other_names': soldier.other_names,
-            'rank': soldier.rank,
-            'regiment': soldier.regiment,
+            'rank': soldier.friendly_rank,
+            'regiment': soldier.friendly_regiment,
             'soldier_number': soldier.soldier_number,
-            'address': soldier.address
+            'address': soldier.address,
+            'id': soldier.id
         })
 
     return JsonResponse(json_soldiers, safe=False)

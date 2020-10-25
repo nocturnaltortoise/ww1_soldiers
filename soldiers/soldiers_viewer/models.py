@@ -11,8 +11,17 @@ class Soldier(models.Model):
     soldier_number = models.CharField(max_length=20, null=True)
     address = models.CharField(max_length=100, null=True)
 
+    def friendly_version(self, conversion_dict, original):
+        words = re.findall(r"[\w']+", original)
+
+        friendly_version = ""
+        for word in words:
+            friendly_version += " " + (conversion_dict.get(word) or word)
+
+        return friendly_version.strip()
+
     @property
-    def rank(self):
+    def friendly_rank(self):
         ranks = {
             'Cpl': 'Corporal',
             'L': 'Lance',
@@ -27,10 +36,21 @@ class Soldier(models.Model):
             'Capt': 'Captain',
             'Cpt': 'Captain'
         }
-        rank_parts = re.findall(r"[\w']+", self.soldier_rank)
 
-        friendly_rank = ""
-        for part in rank_parts:
-            friendly_rank += " " + (ranks.get(part) or part)
+        return self.friendly_version(ranks, self.soldier_rank)
 
-        return friendly_rank.strip()
+    @property
+    def friendly_regiment(self):
+        regiment_codes = {
+            "Fus": "Fusiliers",
+            "Rgt": "Regiment",
+            "Coy": "Company",
+            "Cpy": "Company",
+            "Bde": "Brigade",
+            "RFA": "Royal Field Artillery",
+            "RGA": "Royal Garrison Artillery",
+            "KOR": "King's Own Rifles",
+            "Lancs": "Lancashire"
+        }
+
+        return self.friendly_version(regiment_codes, self.regiment)
