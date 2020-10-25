@@ -1,4 +1,5 @@
 import json
+import math
 
 from django.shortcuts import render
 from django.db.models import Q
@@ -49,7 +50,7 @@ def search(request):
 
     json_soldiers = {
         'soldiers': [],
-        'pages': list(range(max(page-5, 0), min(page_count, page + 9))) if page != 0 else list(range(max(page-5, 0), min(page_count, page + 5)))
+        'pages': get_page_numbers(page)
     }
     for soldier in soldiers:
         json_soldiers['soldiers'].append({
@@ -62,6 +63,13 @@ def search(request):
         })
 
     return JsonResponse(json_soldiers, safe=False)
+
+def get_page_numbers(page):
+    page = page + 1
+    if page % 10 == 0:
+        return list(range(page-1, page+9))
+
+    return list(range(int(math.floor(page / 10.0)) * 10, int(math.ceil(page / 10.0)) * 10))
 
 def about(request):
     return render(request, 'about.html')
