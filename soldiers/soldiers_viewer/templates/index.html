@@ -84,10 +84,11 @@
           </div>
         `,
         created() {
+          mapboxgl.accessToken = 'pk.eyJ1IjoibW9ycGhhc2hhcmsiLCJhIjoiY2tlc2EwYm9vMzlxMzJ5bnBsZ3pkM2w2MyJ9.LIcorYecg_4K1Rtd-elGzA';
+          var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
           this.$nextTick(function(){
             let self = this;
-            mapboxgl.accessToken = 'pk.eyJ1IjoibW9ycGhhc2hhcmsiLCJhIjoiY2tlc2EwYm9vMzlxMzJ5bnBsZ3pkM2w2MyJ9.LIcorYecg_4K1Rtd-elGzA';
-            var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
+
             mapboxClient.geocoding
             .forwardGeocode({
               query: self.soldier.address + ", Burnley",
@@ -107,7 +108,7 @@
 
                 var map = new mapboxgl.Map({
                   container: self.soldier.id.toString(),
-                  style: 'mapbox://styles/mapbox/streets-v11',
+                  style: 'mapbox://styles/mapbox/streets-v11?optimize=true',
                   center: feature.center,
                   zoom: 15
                 });

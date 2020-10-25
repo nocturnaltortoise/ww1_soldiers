@@ -12,11 +12,11 @@ from django.http import JsonResponse
 
 def index(request):
     soldier_count = Soldier.objects.order_by('surname', 'other_names').count()
-    pages = int(soldier_count / 20)
-    if soldier_count % 20 != 0:
+    pages = int(soldier_count / 10)
+    if soldier_count % 10 != 0:
         pages += 1
 
-    soldiers = Soldier.objects.order_by('surname', 'other_names').all()[:20]
+    soldiers = Soldier.objects.order_by('surname', 'other_names').all()[:10]
     json_soldiers = []
     for soldier in soldiers:
         json_soldiers.append({
@@ -34,7 +34,7 @@ def index(request):
 def search(request):
     query = request.GET.get('q')
     page = int(request.GET['p'])
-    results_per_page = 20
+    results_per_page = 10
 
     soldiers = Soldier.objects
     if query:
