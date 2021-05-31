@@ -23,9 +23,13 @@ def index(request):
             'surname': soldier.surname,
             'other_names': soldier.other_names,
             'rank': soldier.friendly_rank,
+            'original_rank': soldier.soldier_rank,
             'regiment': soldier.friendly_regiment,
+            'original_regiment': soldier.regiment,
             'soldier_number': soldier.soldier_number,
             'address': soldier.address,
+            'lat': float(soldier.lat) if soldier.lat else '',
+            'lng': float(soldier.lng) if soldier.lng else '',
             'id': soldier.id
         })
 
@@ -58,13 +62,37 @@ def search(request):
             'surname': soldier.surname,
             'other_names': soldier.other_names,
             'rank': soldier.friendly_rank,
+            'original_rank': soldier.soldier_rank,
             'regiment': soldier.friendly_regiment,
+            'original_regiment': soldier.regiment,
             'soldier_number': soldier.soldier_number,
             'address': soldier.address,
+            'lat': float(soldier.lat) if soldier.lat else '',
+            'lng': float(soldier.lng) if soldier.lng else '',
             'id': soldier.id
         })
 
     return JsonResponse(json_soldiers, safe=False)
+
+
+def map(request):
+    return render(request, 'map.html')
+
+def map_data(request):
+    soldiers = Soldier.objects.exclude(lat__isnull=True)
+    map_markers = []
+
+    for soldier in soldiers:
+        map_markers.append({
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [float(soldier.lng), float(soldier.lat)]
+            }
+        })
+
+    return JsonResponse({'type': 'FeatureCollection', 'features': map_markers}, safe=False)
+
 
 def get_page_numbers(page):
     page = page + 1

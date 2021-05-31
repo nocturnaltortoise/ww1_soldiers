@@ -68,6 +68,7 @@
       </div>
     </div>
 
+    <script type="text/javascript" src="{% static "soldiers_viewer/config.js" %}"></script>
     <script>
       Vue.component('soldier', {
         props: ['soldier'],
@@ -77,46 +78,28 @@
             <h5 class="card-title">[[ soldier.rank ]] [[ soldier.other_names ]] [[ soldier.surname ]]</h5>
             <p class="card-text">
               Number: [[ soldier.soldier_number ]]<br>
-              Regiment: [[ soldier.regiment ]]<br>
+              Regiment: <abbr :title="soldier.original_regiment">[[ soldier.regiment ]]</abbr><br>
               Address: [[ soldier.address ]]
             </p>
             <div :id="soldier.id" style="width: 300px; height: 300px;"></div>
           </div>
         `,
         created() {
-          mapboxgl.accessToken = 'pk.eyJ1IjoibW9ycGhhc2hhcmsiLCJhIjoiY2tlc2EwYm9vMzlxMzJ5bnBsZ3pkM2w2MyJ9.LIcorYecg_4K1Rtd-elGzA';
+          mapboxgl.accessToken = config.mapboxToken;
           var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
           this.$nextTick(function(){
             let self = this;
-
-            mapboxClient.geocoding
-            .forwardGeocode({
-              query: self.soldier.address + ", Burnley",
-              autocomplete: true,
-              limit: 1,
-              bbox: [-2.45672,53.68413,-2.05571,53.91367]
-            })
-            .send()
-            .then(function (response) {
-              if (
-                response &&
-                response.body &&
-                response.body.features &&
-                response.body.features.length
-              ) {
-                var feature = response.body.features[0];
-
-                var map = new mapboxgl.Map({
-                  container: self.soldier.id.toString(),
-                  style: 'mapbox://styles/mapbox/streets-v11?optimize=true',
-                  center: feature.center,
-                  zoom: 15
-                });
-                new mapboxgl.Marker().setLngLat(feature.center).addTo(map);
-              }
+            let lat = parseFloat(self.soldier.lat);
+            let lng = parseFloat(self.soldier.lng);
+            var map = new mapboxgl.Map({
+              container: self.soldier.id.toString(),
+              style: 'mapbox://styles/mapbox/streets-v11?optimize=true',
+              center: [lng, lat],
+              zoom: 15
             });
+            console.log(lat, lng)
+            new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
           });
-
         }
       });
 

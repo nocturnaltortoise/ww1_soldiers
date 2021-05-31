@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Map | WW1 Soldiers From Burnley</title>
+    <link rel="stylesheet" type="text/css" href="{% static "soldiers_viewer/app.css" %}">
+  </head>
+  <body id="page">
+    {% load bootstrap4 %}
+    {% bootstrap_css %}
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/es6-promise@4.2.4/dist/es6-promise.auto.min.js"></script>
+    <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
+
+    <div id="app">
+      <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+        <a class="navbar-brand" href="/">Burnley Soldiers in the First World War</a>
+        <div class="collapse navbar-collapse">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about">About</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="/map">Map</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="container">
+        <div class="row">
+          <div id="map" class="mt-1" style="width: 1200px; height: 700px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="{% static "soldiers_viewer/config.js" %}"></script>
+    <script>
+      var app = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data: {},
+        mounted() {
+          mapboxgl.accessToken = config.mapboxToken;
+          var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
+          var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11?optimize=true',
+            center: [-2.248, 53.789],
+            zoom: 10,
+          });
+
+          map.on('load', function(e){
+            map.addSource('soldiers', {
+              type: 'geojson',
+              data: '/map/data',
+              cluster: true,
+              clusterMaxZoom: 14,
+              clusterRadius: 50
+            })
+
+            map.addLayer({
+              id: 'clusters',
+              type: 'circle',
+              source: 'soldiers',
+              filter: ['has', 'point_count'],
+              paint: {
+              // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+              // with three steps to implement three types of circles:
+              //   * Blue, 20px circles when point count is less than 100
+              //   * Yellow, 30px circles when point count is between 100 and 750
+              //   * Pink, 40px circles when point count is greater than or equal to 750
+                'circle-color': [
+                  'step',
+                  ['get', 'point_count'],
+                  '#51bbd6',
+                  100,
+                  '#f1f075',
+                  750,
+                  '#f28cb1'
+                ],
+                'circle-radius': [
+                  'step',
+                  ['get', 'point_count'],
+                  20,
+                  100,
+                  30,
+                  750,
+                  40
+                ]
+              }
+            });
+
+            map.addLayer({
+              id: 'cluster-count',
+              type: 'symbol',
+              source: 'soldiers',
+              filter: ['has', 'point_count'],
+              layout: {
+                'text-field': '{point_count_abbreviated}',
+                'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                'text-size': 12
+              }
+            });
+
+            map.addLayer({
+              id: 'unclustered-point',
+              type: 'circle',
+              source: 'soldiers',
+              filter: ['!', ['has', 'point_count']],
+              paint: {
+                'circle-color': '#11b4da',
+                'circle-radius': 4,
+                'circle-stroke-width': 1,
+                'circle-stroke-color': '#fff'
+              }
+            });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
