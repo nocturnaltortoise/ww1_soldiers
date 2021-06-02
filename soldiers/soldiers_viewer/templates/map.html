@@ -25,19 +25,29 @@
             <li class="nav-item">
               <a class="nav-link" href="/">Home</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/about">About</a>
-            </li>
             <li class="nav-item active">
               <a class="nav-link" href="/map">Map <span class="sr-only">(current)</span></a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about">About</a>
+            </li>
+
+
           </ul>
+        </div>
+        <div id="search-bar" class="form-row d-flex ml-auto-lg">
+          <div class="col">
+            <input v-on:keyup.enter="getSearchResults(query)" v-model="query" id="search" class="form-control mr-sm-2 my-2 my-sm-0" type="text" placeholder="Search for names, addresses, regiments..."></input>
+          </div>
+          <div class="col flex-grow-0">
+            <button v-on:click="getSearchResults(query)" id="search-btn" class="btn btn-primary my-2 my-sm-0" >Search</button>
+          </div>
         </div>
       </nav>
 
-      <div class="container">
+      <div class="container-fluid">
         <div class="row">
-          <div id="map" class="mt-1" style="width: 1200px; height: 700px;"></div>
+          <div id="map"></div>
         </div>
       </div>
     </div>
@@ -47,7 +57,19 @@
       var app = new Vue({
         delimiters: ['[[', ']]'],
         el: '#app',
-        data: {},
+        data: {
+          map: null
+        },
+        methods: {
+          getSearchResults(query) {
+            fetch('/search?q=' + query + '&v=map')
+            .then(response => response.json())
+            .then(jsonSoldiers => {
+              console.log(jsonSoldiers);
+              this.map.getSource('soldiers').setData(jsonSoldiers);
+            });
+          }
+        },
         mounted() {
           mapboxgl.accessToken = config.mapboxToken;
           var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
@@ -57,6 +79,7 @@
             center: [-2.248, 53.789],
             zoom: 10,
           });
+
 
           map.on('load', function(e){
             map.addSource('soldiers', {
@@ -124,6 +147,7 @@
               }
             });
           });
+          this.map = map;
         }
       });
     </script>

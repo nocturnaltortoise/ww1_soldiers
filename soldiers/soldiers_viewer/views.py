@@ -37,40 +37,81 @@ def index(request):
 
 def search(request):
     query = request.GET.get('q')
-    page = int(request.GET['p'])
+    view = request.GET.get('v')
+    if view != 'map':
+        page = int(request.GET['p'])
     results_per_page = 10
 
     soldiers = Soldier.objects
     if query:
-        soldiers = soldiers.filter(
-            Q(surname__icontains=query) | Q(other_names__icontains=query) | Q(regiment__icontains=query) | Q(soldier_rank__icontains=query) | Q(address__icontains=query) | Q(soldier_number__icontains=query)
-        )
+        words = query.split()
+        if len(words) >= 2:
+            other_names = " ".join(words[:-1])
+            surname = words[-1]
+
+            soldiers = soldiers.filter(
+                (Q(surname__icontains=surname) & Q(other_names__icontains=other_names))
+                 | Q(surname__icontains=query)
+                 | Q(other_names__icontains=query)
+                 | Q(regiment__icontains=query)
+                 | Q(soldier_rank__icontains=query)
+                 | Q(address__icontains=query)
+                 | Q(soldier_number__icontains=query)
+            )
+        else:
+            soldiers = soldiers.filter(
+                Q(surname__icontains=query)
+                | Q(other_names__icontains=query)
+                | Q(regiment__icontains=query)
+                | Q(soldier_rank__icontains=query)
+                | Q(address__icontains=query)
+                | Q(soldier_number__icontains=query)
+            )
 
     soldier_count = soldiers.count()
     page_count = int(soldier_count / results_per_page)
     if soldier_count % results_per_page != 0:
         page_count += 1
 
-    soldiers = soldiers.order_by('surname', 'other_names').all()[page*results_per_page:(page+1)*results_per_page]
+    if view == 'map':
+        soldiers = soldiers.exclude(lat__isnull=True)
 
-    json_soldiers = {
-        'soldiers': [],
-        'pages': get_page_numbers(page)
-    }
-    for soldier in soldiers:
-        json_soldiers['soldiers'].append({
-            'surname': soldier.surname,
-            'other_names': soldier.other_names,
-            'rank': soldier.friendly_rank,
-            'original_rank': soldier.soldier_rank,
-            'regiment': soldier.friendly_regiment,
-            'original_regiment': soldier.regiment,
-            'soldier_number': soldier.soldier_number,
-            'address': soldier.address,
-            'lat': float(soldier.lat) if soldier.lat else '',
-            'lng': float(soldier.lng) if soldier.lng else '',
-            'id': soldier.id
-        })
+    soldiers = soldiers.order_by('surname', 'other_names').all()
+    if view != 'map':
+        soldiers = soldiers[page*results_per_page:(page+1)*results_per_page]
+
+    if view == 'map':
+        json_soldiers = {
+            'type': 'FeatureCollection',
+            'features': []
+        }
+        for soldier in soldiers:
+            json_soldiers['features'].append({
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [float(soldier.lng), float(soldier.lat)]
+                }
+            })
+    else:
+        json_soldiers = {
+            'soldiers': [],
+            'pages': get_page_numbers(page)
+        }
+        for soldier in soldiers:
+            json_soldiers['soldiers'].append({
+                'surname': soldier.surname,
+                'other_names': soldier.other_names,
+                'rank': soldier.friendly_rank,
+                'original_rank': soldier.soldier_rank,
+                'regiment': soldier.friendly_regiment,
+                'original_regiment': soldier.regiment,
+                'soldier_number': soldier.soldier_number,
+                'address': soldier.address,
+                'lat': float(soldier.lat) if soldier.lat else '',
+                'lng': float(soldier.lng) if soldier.lng else '',
+                'id': soldier.id
+            })
 
     return JsonResponse(json_soldiers, safe=False)
 
